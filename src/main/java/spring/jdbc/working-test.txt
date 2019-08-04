@@ -1,0 +1,59 @@
+package spring.jdbc;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+@SpringBootApplication
+public class SpringJdbcTempateApplication  implements CommandLineRunner{
+	
+	@Autowired
+	AppConfig appConfig;
+
+	public static void main(String[] args) {
+		SpringApplication.run(SpringJdbcTempateApplication.class, args);
+	
+	}	
+
+	@Override
+	public void run(String... args) throws Exception {
+		System.out.println("I am running method :)");
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(appConfig.dataSource());
+		//insert query
+		/*int update = jdbcTemplate.update("insert into USER values(1,'umapathi','raju')");
+		System.out.println("update statement : "+update);*/
+		//int update = jdbcTemplate.update("insert into user values(3,'ravi','raju')");
+
+		// select user name
+		String recordName = jdbcTemplate.queryForObject("select firstName from user where id =?",
+				new Object[] {1},String.class);
+		System.out.println("Record Name : "+recordName);
+		
+		// fetching user object with java 8
+		String str ="select * from user where id = ?";
+		
+		User queryForObject = jdbcTemplate.queryForObject(str, new Object[] {3} ,
+				(rs,rowNum)-> {
+				User user = new User();
+				try {
+					user.setId(rs.getInt("id"));
+					user.setFirstName(rs.getString("firstName"));
+					user.setLastName(rs.getString("lastName"));
+					return user;
+				}
+				catch (Exception e) {
+				}
+				return user;
+		});
+		
+		System.out.println(queryForObject);
+
+		// updating data
+		int update = jdbcTemplate.update( "update user set firstName= ?,lastName =? where id = 1", new Object[] {"mahi","honeysingh"});
+	
+		System.out.println(update);
+	}
+
+}
